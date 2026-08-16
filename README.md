@@ -2,8 +2,6 @@
 
 An audited reconstruction of my MSc **Predictive Business and Finance (EM1415)** coursework on annual tourism-demand forecasting.
 
-> **Repository naming note:** the current repository slug is a legacy name. I recommend renaming it to **`tourism-demand-forecasting`**.
-
 ---
 
 ## Key results
@@ -52,72 +50,39 @@ Because the series differ strongly in level and scale, raw MAE and RMSE are not 
 
 # Mathematical forecasting framework
 
-Consider one annual time series with observed training values
+For each annual series:
 
-```math
-y_1, y_2, \ldots, y_T.
-```
+- `y_t` denotes the observed value in year `t`;
+- `T` is the final year in the training sample;
+- `h` is the forecast horizon;
+- `H = 4` is the validation horizon;
+- the forecast for year `T + h` is denoted by the fitted value shown in the equations below.
 
-Let
+The equations are displayed as vector graphics so that mathematical notation renders consistently on GitHub.
 
-```math
-\widehat{y}_{T+h}
-```
+## 1. Mean Absolute Percentage Error (MAPE)
 
-denote the forecast for horizon
+<p align="center">
+  <img src="figures/mape_formula.svg" width="760" alt="MAPE formula">
+</p>
 
-```math
-h \in \{1,2,3,4\}.
-```
+MAPE measures the average absolute percentage forecast error over the four validation horizons. It is scale-free and easy to interpret as a percentage, although it can become unstable when observed values are close to zero.
 
-The validation horizon is denoted by
+## 2. Mean Absolute Scaled Error (MASE)
 
-```math
-H=4.
-```
+MASE first scales forecast errors by the average one-step naive error observed in the training sample.
 
-## 1. Mean Absolute Percentage Error
+<p align="center">
+  <img src="figures/mase_scale_formula.svg" width="700" alt="MASE scaling term">
+</p>
 
-For one series, MAPE is defined as
+The scaled forecast-error measure is then:
 
-```math
-\operatorname{MAPE}
-=
-\frac{100}{H}
-\sum_{h=1}^{H}
-\left|
-\frac{y_{T+h}-\widehat{y}_{T+h}}
-{y_{T+h}}
-\right|.
-```
+<p align="center">
+  <img src="figures/mase_formula.svg" width="760" alt="MASE formula">
+</p>
 
-MAPE is scale-free and interpretable as a percentage. It can, however, become unstable when observed values are close to zero.
-
-## 2. Mean Absolute Scaled Error
-
-The scaling quantity is the mean absolute one-step naive error in the training sample:
-
-```math
-Q
-=
-\frac{1}{T-1}
-\sum_{t=2}^{T}
-\left|y_t-y_{t-1}\right|.
-```
-
-MASE is then
-
-```math
-\operatorname{MASE}
-=
-\frac{1}{H}
-\sum_{h=1}^{H}
-\frac{
-\left|y_{T+h}-\widehat{y}_{T+h}\right|
-}{Q}.
-```
-
-A value below 1 indicates that, on average, the forecast errors are smaller than the in-sample one-step naive scale; a value above 1 indicates larger errors relative to that benchmark scale.
+A MASE below 1 means that forecast errors are, on average, smaller than the in-sample one-step naive benchmark scale. A value above 1 means that the forecast errors are larger relative to that benchmark.
 
 ---
 
@@ -125,55 +90,45 @@ A value below 1 indicates that, on average, the forecast errors are smaller than
 
 ## Model 1 — Flat naive forecast
 
-The flat naive forecast assumes that the most recent observed value is the best forecast for every future horizon:
+The flat naive forecast uses the **last observed training value for every future horizon**.
 
-```math
-\widehat{y}_{T+h}^{\mathrm{naive}}
-=
-y_T,
-\qquad
-h=1,\ldots,H.
-```
+<p align="center">
+  <img src="figures/naive_forecast_formula.svg" width="720" alt="Flat naive forecast formula">
+</p>
 
 This is the simplest benchmark and imposes no trend.
 
 ## Model 2 — 5.5% growth-adjusted naive forecast
 
-The growth-adjusted rule compounds the final observed value by 5.5% per year:
+The second rule starts from the final observed training value and compounds it by **5.5% per year**.
 
-```math
-\widehat{y}_{T+h}^{\mathrm{growth}}
-=
-y_T(1.055)^h,
-\qquad
-h=1,\ldots,H.
-```
+<p align="center">
+  <img src="figures/growth_forecast_formula.svg" width="760" alt="Growth-adjusted naive forecast formula">
+</p>
 
-The exponent is **h**, not **h-1**. Using h-1 would imply zero growth at the one-year-ahead horizon.
+The exponent is the forecast horizon `h`. This matters: using `h − 1` would imply **no growth at the one-year-ahead forecast**, which was one of the issues identified in the original coursework workflow.
 
 ## Model 3 — Linear-trend forecast
 
-For each series separately, the training observations are modelled as
+For each series separately, the training observations are represented by a linear time-trend model:
 
-```math
-y_t
-=
-\alpha + \beta t + \varepsilon_t,
-\qquad
-t=1,\ldots,T.
-```
+<p align="center">
+  <img src="figures/trend_model_formula.svg" width="700" alt="Linear trend model formula">
+</p>
 
-After estimating the intercept and slope by ordinary least squares, the h-step-ahead forecast is
+Here:
 
-```math
-\widehat{y}_{T+h}^{\mathrm{trend}}
-=
-\widehat{\alpha}
-+
-\widehat{\beta}(T+h).
-```
+- `α` is the intercept;
+- `β` is the estimated annual trend;
+- `ε_t` is the model disturbance.
 
-This approach allows each series to have its own fitted trend, but extrapolation can be unstable when a series is short, volatile, or affected by structural change.
+After estimating the intercept and slope by ordinary least squares, the future forecast is obtained by evaluating the fitted line at the future time point `T + h`:
+
+<p align="center">
+  <img src="figures/trend_forecast_formula.svg" width="700" alt="Linear trend forecast formula">
+</p>
+
+This model allows every series to have its own estimated trend, but linear extrapolation can be fragile when a series is short, volatile, or affected by structural change.
 
 ---
 
@@ -208,15 +163,7 @@ The deterioration with horizon is pronounced. A constant-last-value forecast bec
 
 ## Training versus validation performance
 
-For the one-step training benchmark, the naive fitted value is
-
-```math
-\widehat{y}_t^{\mathrm{naive}}
-=
-y_{t-1},
-\qquad
-t=2,\ldots,T.
-```
+For the one-step training benchmark, each observation from the second training year onward is forecast using the immediately preceding observation. This is a genuine one-step-ahead naive forecast, rather than comparing repeated copies of the final training value with themselves.
 
 The resulting average metrics across the 518 series are:
 
@@ -249,17 +196,7 @@ Training errors are constructed from genuine one-step forecasts rather than repe
 
 ## 3. Correct growth exponent
 
-For an h-step-ahead forecast, the 5.5% growth rule is
-
-```math
-(1.055)^h,
-```
-
-not
-
-```math
-(1.055)^{h-1}.
-```
+The 5.5% growth-adjusted forecast compounds the final training value once for a one-year-ahead forecast, twice for a two-year-ahead forecast, and so on. The horizon exponent is therefore `h`, not `h − 1`.
 
 ## 4. Scale-free evaluation
 
@@ -290,30 +227,7 @@ The data used here are annual, so seasonal Holt-Winters components are not relev
 
 ## Forecast combinations
 
-Instead of manually selecting combination weights, weights could be estimated with:
-
-- rolling-origin validation;
-- constrained least squares;
-- inverse-error weighting;
-- stacking.
-
-For example, a convex forecast combination can be written as
-
-```math
-\widehat{y}_{T+h}^{\mathrm{ens}}
-=
-\sum_{m=1}^{M}
-\omega_m
-\widehat{y}_{T+h}^{(m)},
-```
-
-subject to
-
-```math
-\omega_m \ge 0,
-\qquad
-\sum_{m=1}^{M}\omega_m=1.
-```
+Instead of manually selecting combination weights, ensemble weights could be estimated using rolling-origin validation, constrained least squares, inverse-error weighting, or stacking. A convex combination would restrict the model weights to be **non-negative and to sum to one**, which preserves a clear interpretation of the combined forecast.
 
 ---
 
@@ -340,8 +254,15 @@ The reported numerical results were recomputed from the original coursework data
 ├── docs/
 │   └── coursework_audit.md
 ├── figures/
+│   ├── model_comparison.svg
 │   ├── horizon_error.svg
-│   └── model_comparison.svg
+│   ├── mape_formula.svg
+│   ├── mase_scale_formula.svg
+│   ├── mase_formula.svg
+│   ├── naive_forecast_formula.svg
+│   ├── growth_forecast_formula.svg
+│   ├── trend_model_formula.svg
+│   └── trend_forecast_formula.svg
 ├── results/
 │   ├── model_comparison.csv
 │   ├── horizon_metrics.csv
