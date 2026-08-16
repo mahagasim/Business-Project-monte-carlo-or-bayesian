@@ -36,24 +36,91 @@ The coursework dataset contains **518 annual time series** stored in a 43-row ma
 
 Many series display upward trends, but their levels, growth rates and volatility differ substantially. The heterogeneous scales make raw MAE/RMSE unsuitable for averaging across all 518 series without normalization.
 
-## Error measures
+## Mathematical forecasting framework
 
-For cross-series comparison, I prioritize **MAPE** and **MASE**:
+For a single annual series, let
 
-- **MAE** and **RMSE** are scale-dependent; high-volume destinations can dominate an average across series.
-- **Average signed error** can cancel positive and negative errors and therefore understates forecast magnitude errors.
-- **MAPE** is scale-free and interpretable as a percentage, but is undefined at zero and unstable near zero.
-- **MASE** scales forecast error by the in-sample one-step naive error, is comparable across differently scaled series, and remains meaningful when values are not close to zero.
+$$
+y_1,y_2,\ldots,y_T
+$$
 
-For a series \(y_1,\ldots,y_T\), the MASE scaling denominator is
+denote the observed training values, and let $\widehat y_{T+h}$ denote the forecast for horizon $h\in\{1,2,3,4\}$.
 
-\[
-\frac{1}{T-1}\sum_{t=2}^{T}|y_t-y_{t-1}|.
-\]
+### Error measures
+
+For a validation set of length $H$, the mean absolute percentage error is
+
+$$
+\operatorname{MAPE}
+=
+\frac{100}{H}
+\sum_{h=1}^{H}
+\left|
+\frac{y_{T+h}-\widehat y_{T+h}}{y_{T+h}}
+\right|.
+$$
+
+MAPE is scale-free and easy to interpret as a percentage, but it is undefined when the observed value is zero and can be unstable near zero.
+
+The in-sample one-step naive scaling term used by MASE is
+
+$$
+Q
+=
+\frac{1}{T-1}
+\sum_{t=2}^{T}
+|y_t-y_{t-1}|.
+$$
+
+The mean absolute scaled error is then
+
+$$
+\operatorname{MASE}
+=
+\frac{1}{H}
+\sum_{h=1}^{H}
+\frac{|y_{T+h}-\widehat y_{T+h}|}{Q}.
+$$
+
+MASE is therefore comparable across series with very different scales, provided the scaling denominator $Q$ is positive.
+
+### Forecasting rules
+
+The **naive forecast** repeats the last observed training value:
+
+$$
+\widehat y_{T+h}^{\text{naive}}=y_T,
+\qquad h=1,\ldots,H.
+$$
+
+The **5.5% growth-adjusted naive forecast** compounds the final observation at a fixed annual rate:
+
+$$
+\widehat y_{T+h}^{\text{growth}}
+=
+y_T(1.055)^h.
+$$
+
+For the **linear-trend forecast**, each series is modelled as
+
+$$
+y_t=\alpha+\beta t+\varepsilon_t,
+\qquad t=1,\ldots,T,
+$$
+
+and future values are extrapolated using
+
+$$
+\widehat y_{T+h}^{\text{trend}}
+=
+\widehat\alpha+\widehat\beta(T+h).
+$$
+
+These formulas make the comparison explicit: the first method assumes a level forecast, the second imposes a common positive growth rate, and the third extrapolates a series-specific fitted trend.
 
 ## Naive forecast results
 
-The corrected one-step **training** naive forecast uses \(\hat y_t=y_{t-1}\). The four-year **validation** naive forecast repeats the last training observation at every horizon.
+The corrected one-step **training** naive forecast uses $\widehat y_t=y_{t-1}$. The four-year **validation** naive forecast repeats the last training observation at every horizon.
 
 | Metric | Mean across 518 series |
 |---|---:|
@@ -77,19 +144,13 @@ Forecast error rises sharply with the horizon, which is exactly what we would ex
 
 ## Comparing three simple forecasting rules
 
-I compare:
+| Method | Mathematical rule | Validation MAPE | Validation MASE |
+|---|---|---:|---:|
+| Naive | $\widehat y_{T+h}=y_T$ | 20.87% | 3.37 |
+| **5.5% growth naive** | $\widehat y_{T+h}=y_T(1.055)^h$ | **20.52%** | **2.87** |
+| Linear trend | $\widehat y_{T+h}=\widehat\alpha+\widehat\beta(T+h)$ | 29.98% | 3.74 |
 
-1. **Naive:** \(\hat y_{T+h}=y_T\).
-2. **5.5% growth-adjusted naive:** \(\hat y_{T+h}=y_T(1.055)^h\).
-3. **Linear trend:** OLS of the observed series on a time index, extrapolated four years.
-
-The 5.5% formula follows Baker & Howard's description of their annual-tourism competition method. The original coursework had mistakenly used the exponent \(h-1\), which would imply no growth at the one-year horizon.
-
-| Method | Validation MAPE | Validation MASE |
-|---|---:|---:|
-| Naive | 20.87% | 3.37 |
-| **5.5% growth naive** | **20.52%** | **2.87** |
-| Linear trend | 29.98% | 3.74 |
+The 5.5% formula follows Baker & Howard's description of their annual-tourism competition method. The original coursework had mistakenly used the exponent $h-1$, which would imply no growth at the one-year horizon.
 
 The growth-adjusted naive rule performs best on average under both MAPE and MASE in this reconstruction. The simple linear trend performs substantially worse, illustrating that extrapolating a fitted trend can be fragile when series are short, volatile or structurally changing.
 
@@ -103,13 +164,13 @@ The adjustment incorporates **domain and empirical knowledge**: tourism demand h
 
 ### Linear-regression specification
 
-For each series separately:
+For each series separately, the dependent variable is observed tourism demand $y_t$, the predictor is time $t$, and the model is
 
-- dependent variable: observed tourism demand \(y_t\);
-- predictor: time index \(t\);
-- model: \(y_t=\alpha+\beta t+\varepsilon_t\).
+$$
+y_t=\alpha+\beta t+\varepsilon_t.
+$$
 
-Future tourism demand is forecast by evaluating the fitted line at \(T+1,\ldots,T+4\).
+Future tourism demand is forecast by evaluating the fitted line at $T+1,\ldots,T+4$.
 
 ### Problems with polynomial-order selection
 
