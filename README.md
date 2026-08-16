@@ -4,6 +4,18 @@ A completed and audited reconstruction of my MSc **Predictive Business and Finan
 
 > **Repository-name note:** this was an unused private legacy repository in my GitHub account. The connected GitHub tool can populate existing repositories but cannot rename or create repositories, so the repository slug is temporarily unrelated to the project. The project title and contents below are authoritative.
 
+## Key results
+
+Across **518 heterogeneous annual tourism series**, the **5.5% growth-adjusted naive forecast** achieved the lowest average validation error among the three simple rules considered: **20.52% MAPE**, compared with **20.87%** for the flat naive benchmark and **29.98%** for a fitted linear trend.
+
+![Validation MAPE by forecasting method](figures/model_comparison.svg)
+
+The second important result is horizon sensitivity: the naive forecast's MAPE rises from **12.75% at one year** to **28.66% at four years**.
+
+![Forecast error by horizon](figures/horizon_error.svg)
+
+**Interpretation.** More flexible extrapolation is not automatically better. A modest growth adjustment improves the scale-free error metrics slightly, while an unconstrained linear trend performs substantially worse on average. In addition, in-sample MAPE and validation MAPE correlate only **0.427**, reinforcing the importance of out-of-sample evaluation.
+
 ## Project question
 
 How well do simple forecasting rules generalize across a large collection of heterogeneous annual tourism-demand series, and what do scale-free error measures reveal about performance across forecast horizons?
@@ -127,6 +139,9 @@ A leaderboard metric treats all series as an abstract forecast set. Real tourism
 │   └── README.md
 ├── docs/
 │   └── coursework_audit.md
+├── figures/
+│   ├── horizon_error.svg
+│   └── model_comparison.svg
 ├── results/
 │   ├── model_comparison.csv
 │   ├── horizon_metrics.csv
