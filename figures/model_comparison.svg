@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="400" viewBox="0 0 900 400">
+  <rect width="900" height="400" fill="#ffffff"/>
+  <style>
+    .title{font:700 22px Arial,sans-serif;fill:#172033}.sub{font:14px Arial,sans-serif;fill:#5a6475}.label{font:13px Arial,sans-serif;fill:#394457}.tick{font:11px Arial,sans-serif;fill:#6a7484}.axis{stroke:#d7dce5;stroke-width:1}.grid{stroke:#eef1f5;stroke-width:1}.bar{fill:#4f6bed}.best{fill:#32a277}.value{font:700 14px Arial,sans-serif;fill:#172033}
+  </style>
+  <text x="450" y="31" text-anchor="middle" class="title">Validation performance across 518 tourism series</text>
+  <text x="450" y="53" text-anchor="middle" class="sub">Lower MAPE is better; the 5.5% growth-adjusted naive rule performs best on average</text>
+  <line x1="90" y1="320" x2="840" y2="320" class="axis"/>
+  <line x1="90" y1="95" x2="90" y2="320" class="axis"/>
+  <line x1="90" y1="245" x2="840" y2="245" class="grid"/><text x="77" y="249" text-anchor="end" class="tick">10%</text>
+  <line x1="90" y1="170" x2="840" y2="170" class="grid"/><text x="77" y="174" text-anchor="end" class="tick">20%</text>
+  <line x1="90" y1="95" x2="840" y2="95" class="grid"/><text x="77" y="99" text-anchor="end" class="tick">30%</text>
+  <text x="35" y="205" transform="rotate(-90 35 205)" text-anchor="middle" class="label">Validation MAPE</text>
+
+  <rect x="165" y="163.5" width="120" height="156.5" rx="6" class="bar"/>
+  <rect x="390" y="166.1" width="120" height="153.9" rx="6" class="best"/>
+  <rect x="615" y="95.2" width="120" height="224.8" rx="6" class="bar"/>
+  <text x="225" y="154" text-anchor="middle" class="value">20.87%</text>
+  <text x="450" y="157" text-anchor="middle" class="value">20.52%</text>
+  <text x="675" y="86" text-anchor="middle" class="value">29.98%</text>
+  <text x="225" y="345" text-anchor="middle" class="label">Naive</text>
+  <text x="450" y="345" text-anchor="middle" class="label">5.5% growth naive</text>
+  <text x="675" y="345" text-anchor="middle" class="label">Linear trend</text>
+  <text x="450" y="378" text-anchor="middle" class="sub">Portfolio reconstruction using the last four observed values of each series as validation data.</text>
+</svg>
